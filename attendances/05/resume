@@ -1,0 +1,201 @@
+MI2B_10_FendyIskandar_2031710057
+
+                                                            Animate A Widget across screens
+1.	Pengenalan Hero Animation
+Hero Animation bisa dikatakan merupakan salah satu animasi paling mudah dan sederhana di flutter. 
+Caranya yaitu hanya dengan menggunakan class Hero pada kedua item (awal dan akhir) dan dihubungkan dengan properti tag yang memilik nilai yang sama.
+Contoh sederhana penggunaan Hero widget seperti dibawah ini :
+```dart
+Hero(
+  tag: 'imageHero',
+  child: Image.network(
+    'https://picsum.photos/250?image=9',
+  ),
+)
+```
+
+2.	Navigate to a new screen and back
+Melakukan navigasi menggunakan route untuk melakukan navigasi ke second route dan kembali ke layar awal
+```dart
+onPressed: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const SecondRoute()),
+  );
+}
+```
+Dan pada halaman pertama menggunakan source code berikut 
+```dart
+onPressed: () {
+  Navigator.pop(context);
+}
+```
+
+
+3.	Navigate with name route
+Initial route berguna untuk route default yang pertama kali ditampilkan dan routes berisi daftar nama route untuk setiap halaman. 
+Agar halaman route dapat diakses perlu registrasi nama routenya pada bagian routes.
+```dart
+@override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Navigation',
+      initialRoute: '/',
+        routes: {
+          '/': (context) => const FirstScreen(),
+          '/second': (context) => const SecondScreen(),
+        },
+    );
+  }
+```
+
+4.	Pass argument to a named route
+Petama adalah definisikan argument terlebih dahulu 
+```dart
+class ScreenArguments { final String title; final String message;
+ScreenArguments(this.title, this.message); }
+```
+
+Lalu buat widget untuk ekstraksi pada argument
+```dart
+static const routeName = '/extractArguments';
+  @override
+  Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)!.settings.arguments as ScreenArguments;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(args.title),
+      ),
+      body: Center(
+        child: Text(args.message),
+      ),
+    );
+  }
+}
+```
+
+Daftarkan widget dalam route
+```dart
+@override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      routes: {
+        ExtractArgumentsScreen.routeName: (context) =>
+            const ExtractArgumentsScreen(),
+      },
+```
+Dan tambahkan navigasi
+```dart
+ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(
+                  context,
+                  ExtractArgumentsScreen.routeName,
+                  arguments: ScreenArguments(
+                    'Extract Arguments Screen',
+                    'This message is extracted in the build method.',
+                  ),
+                );
+              },
+              child: const Text('Navigate to screen that extracts arguments'),
+            ),
+```
+
+5.	Return data from a screen 
+Code dibawah ini memiliki 2 option dan juga memiliki fungsi 
+selection screen untuk penerimaan data yang nantinya navigasi tersebut akan menyimpan dan dikembalikan pada halaman awal 
+```dart
+void _navigateAndDisplaySelection(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SelectionScreen()),
+    );
+
+    ScaffoldMessenger.of(context)
+      ..removeCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text('$result')));
+  }
+}
+```
+Dan saat navigator pop di klik maka akan mengembalikan data pada halaman awal
+```dart
+@override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Pick an option'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context, 'Yep!');
+                },
+                child: const Text('Yep!'),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context, 'Nope.');
+                },
+                child: const Text('Nope.'),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+6.	Send data to a new screen
+Pertama adalah membuat class yang sudah dienkapsulasi beberapa data, berikut source code nya
+```dart
+class Todo {
+  final String title;
+  final String description;
+
+  const Todo(this.title, this.description);
+}
+```
+
+Langkah selanjutnya adalah buat widget sebagai layar tujuan, dan jika sudah berikan navigasi berupa ontap : () agar bisa berpindah dari layar ke layar lain
+```dart
+final List<Todo> todos;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Todos'),
+      ),
+      body: ListView.builder(
+        itemCount: todos.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(todos[index].title),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DetailScreen(),
+                  settings: RouteSettings(
+                    arguments: todos[index],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+```
